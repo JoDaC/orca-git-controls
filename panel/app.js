@@ -1,5 +1,5 @@
 // Orca Git Controls: panel.
-// Draws the Android Studio style branches popup and Git menu; all git work runs in the worker.
+// Draws the branches panel and Git menu; all git work runs in the worker.
 
 import { icon } from './icons.js'
 import { dialog, confirmDialog, errorDialog, el, toast, setBusy } from './ui.js'
@@ -170,7 +170,7 @@ const ACTIONS = [
   { id: 'checkoutRevision', label: 'Checkout Tag or Revision…', icon: 'tag', run: () => doCheckoutRevision() }
 ]
 
-/** Android Studio's Git menu (VCS operations popup). */
+/** The Git menu (VCS operations popup). */
 function gitMenu() {
   return [
     { label: 'Commit…', run: doCommit },
@@ -269,7 +269,7 @@ function buildRows() {
 
 function pushTree(rows, tree, depth, scope, nameOf, makeRow) {
   const q = state.query
-  // Favorites first (as Android Studio pins them), then folders, then the rest.
+  // Favorites first, then folders, then the rest.
   const favs = tree.items.filter((i) => i.favorite)
   for (const item of favs) if (matches(nameOf(item))) rows.push(makeRow(item, depth))
   for (const folder of tree.folders) {

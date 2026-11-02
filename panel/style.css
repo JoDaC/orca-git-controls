@@ -15,7 +15,7 @@
   --popover: var(--orca-popover, var(--bg));
   --popover-fg: var(--orca-popover-foreground, var(--fg));
   --radius: var(--orca-radius, 6px);
-  /* Android Studio colors: incoming blue, outgoing green, favorite gold, current tag. */
+  /* Incoming blue, outgoing green, favorite gold, current tag. */
   --incoming: #2f6fde;
   --outgoing: #2e8a43;
   --star: #d9a400;

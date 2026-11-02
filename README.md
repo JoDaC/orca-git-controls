@@ -2,11 +2,11 @@
 
 ![Git Controls branches panel in dark and light themes](images/cover.png)
 
-An Orca plugin that brings Android Studio's Git branches popup and Git menu into Orca.
+An Orca plugin that adds a Git branches panel and a full Git menu to Orca.
 Orca's own Git UI is a commit panel (commit, push, pull, sync), and it assumes one branch per
 worktree. This plugin adds the rest. You can switch branches in an existing worktree, create,
-rename, delete, merge, rebase and compare branches, and run the other items of Android Studio's
-Git menu.
+rename, delete, merge, rebase and compare branches, and run the rest of the usual Git
+operations from the command palette.
 
 The plugin always works on the checkout of the workspace focused in Orca.
 
@@ -75,7 +75,7 @@ dialog in the Git Controls panel.
 
 ### Behavior
 
-- **Checkout with local changes that git refuses to carry over:** you get Android Studio's choices.
+- **Checkout with local changes that git refuses to carry over:** you get three choices.
   - **Smart Checkout:** stash (untracked files included), checkout, unstash. If the unstash
     conflicts, the panel lists the files and the stash is kept.
   - **Force Checkout:** discards your changes, after a second confirmation.
@@ -195,7 +195,7 @@ npm test        # node --test: git layer + workspace matching, against repos und
 | `scripts/` | Demo repository and browser preview |
 | `test/` | `node:test` suites |
 
-## Known gaps vs Android Studio (Orca API limits)
+## Known gaps (Orca API limits)
 
 These come from what Orca's plugin API offers in 1.4.246 (host API 1.2).
 
@@ -226,10 +226,8 @@ These come from what Orca's plugin API offers in 1.4.246 (host API 1.2).
 - **Diffs and logs are text views in the panel.** Plugins cannot open Orca's diff viewer for an
   arbitrary ref pair. Show Diff with Working Tree, Compare and Show Git Log are drawn inside the
   panel.
-- **No interactive rebase, cherry-pick or shelf.** These are not in the requested menu.
-  Rebase is plain `git rebase`.
-- **Smart Checkout uses `git stash`.** Android Studio can use shelves, and Git has no equivalent.
-  If an untracked file of yours exists in the target branch, the unstash stops and the stash is
+- **No interactive rebase or cherry-pick.** Rebase is plain `git rebase`.
+- **Smart Checkout uses `git stash`.** If an untracked file of yours exists in the target branch, the unstash stops and the stash is
   kept. The panel names the file.
 - **Long operations.** A panel request waits at most 120 s. A slower fetch or push keeps running
   in git, but the panel reports a timeout. It refreshes when git finishes.

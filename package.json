@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Android Studio style Git controls for Orca",
+  "description": "Git branches panel and Git menu for Orca",
   "license": "MIT",
   "scripts": {
     "test": "node --test test/*.test.mjs"
