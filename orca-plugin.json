@@ -1,0 +1,214 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stablyai/orca/main/docs/schemas/plugins/orca-plugin.v2.schema.json",
+  "manifestVersion": 2,
+  "id": "git-branches",
+  "name": "Git Branches",
+  "version": "0.1.0",
+  "execution": "trusted-worker",
+  "description": "Android Studio style Git branches popup and Git menu: switch, create, merge, rebase, compare and delete branches in the focused workspace, with Smart Checkout and worktree-aware checkout.",
+  "license": "MIT",
+  "engines": {
+    "orca": ">=1.4.246"
+  },
+  "pluginApi": 1,
+  "main": "worker/main.mjs",
+  "contributes": {
+    "panels": [
+      {
+        "id": "branches",
+        "title": "Git Branches",
+        "icon": "branch",
+        "entry": "panel/index.html"
+      }
+    ],
+    "commands": [
+      {
+        "id": "git.branches",
+        "title": "Git: Branches…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.vcsPopup",
+        "title": "Git: VCS Operations Popup…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.commit",
+        "title": "Git: Commit (Orca Source Control)",
+        "when": "workspace",
+        "action": "sidebar.sourceControl.toggle"
+      },
+      {
+        "id": "git.commitDialog",
+        "title": "Git: Commit…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.push",
+        "title": "Git: Push",
+        "when": "workspace"
+      },
+      {
+        "id": "git.updateProject",
+        "title": "Git: Update Project",
+        "when": "workspace"
+      },
+      {
+        "id": "git.pull",
+        "title": "Git: Pull",
+        "when": "workspace"
+      },
+      {
+        "id": "git.fetch",
+        "title": "Git: Fetch",
+        "when": "workspace"
+      },
+      {
+        "id": "git.merge",
+        "title": "Git: Merge…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.rebase",
+        "title": "Git: Rebase…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.newBranch",
+        "title": "Git: New Branch…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.newTag",
+        "title": "Git: New Tag…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.checkoutRevision",
+        "title": "Git: Checkout Tag or Revision…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.reset",
+        "title": "Git: Reset HEAD…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.newWorktree",
+        "title": "Git: New Worktree…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.worktrees",
+        "title": "Git: Worktrees…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.log",
+        "title": "Git: Show Git Log",
+        "when": "workspace"
+      },
+      {
+        "id": "git.patchCreate",
+        "title": "Git: Patch › Create Patch from Local Changes…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.patchApply",
+        "title": "Git: Patch › Apply Patch…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.stash",
+        "title": "Git: Uncommitted Changes › Stash Changes",
+        "when": "workspace"
+      },
+      {
+        "id": "git.unstash",
+        "title": "Git: Uncommitted Changes › Unstash Latest",
+        "when": "workspace"
+      },
+      {
+        "id": "git.stashes",
+        "title": "Git: Uncommitted Changes › Stashes…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.rollback",
+        "title": "Git: Uncommitted Changes › Rollback…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.fileHistory",
+        "title": "Git: Current File › Show History…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.blame",
+        "title": "Git: Current File › Annotate with Git Blame…",
+        "when": "workspace"
+      },
+      {
+        "id": "git.rollbackFile",
+        "title": "Git: Current File › Rollback…",
+        "when": "workspace"
+      }
+    ],
+    "events": [
+      {
+        "on": "workspace.changed"
+      }
+    ],
+    "settings": [
+      {
+        "key": "updateMethod",
+        "title": "Update Project method",
+        "description": "How Update Project and Pull integrate incoming commits.",
+        "type": "string",
+        "default": "rebase",
+        "enum": [
+          "rebase",
+          "merge"
+        ],
+        "enumLabels": [
+          "Rebase",
+          "Merge"
+        ]
+      },
+      {
+        "key": "recentCount",
+        "title": "Recent branches shown",
+        "type": "integer",
+        "default": 5,
+        "minimum": 0,
+        "maximum": 20
+      },
+      {
+        "key": "showTags",
+        "title": "Show tags",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "key": "fetchOnOpen",
+        "title": "Fetch when the panel opens",
+        "type": "boolean",
+        "default": false
+      }
+    ]
+  },
+  "capabilities": [
+    {
+      "kind": "workspace:read"
+    },
+    {
+      "kind": "notifications:show"
+    },
+    {
+      "kind": "storage:own"
+    },
+    {
+      "kind": "settings:own"
+    }
+  ]
+}

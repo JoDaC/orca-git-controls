@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Git Branches</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header id="top">
+        <button id="workspace" class="ws" title="Workspace this panel works on"></button>
+        <div class="top-actions">
+          <button id="fetch" class="icon-btn" title="Fetch all remotes"></button>
+          <button id="settings" class="icon-btn" title="Settings"></button>
+        </div>
+      </header>
+      <div id="banner" hidden></div>
+      <div class="search-wrap">
+        <span class="search-icon" aria-hidden="true"></span>
+        <input id="search" type="search" placeholder="Search branches and actions" autocomplete="off" spellcheck="false" />
+      </div>
+      <main id="view"></main>
+      <div id="toast" role="status" aria-live="polite"></div>
+      <div id="dialog-root"></div>
+    </div>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
