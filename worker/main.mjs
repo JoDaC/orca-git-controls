@@ -1,4 +1,4 @@
-// Orca Git Branches: plugin worker.
+// Orca Git Controls: plugin worker.
 // Runs git for the panel (through orca.panels.handle) and for the command palette.
 
 import { watch } from 'node:fs'
@@ -298,7 +298,7 @@ export default async function activate(orca) {
       // Needs a decision or reports conflicts: hand it to the panel.
       pendingIntent = { kind: 'result', title, op, args, value: v }
       post('ui.intent', pendingIntent)
-      await notify(`${title}: action needed`, 'Open Git Branches in the right sidebar to continue.')
+      await notify(`${title}: action needed`, 'Open Git Controls in the right sidebar to continue.')
       return v.status
     }
     const text = describe ? describe(v) : (v && v.output) || 'Done'
@@ -310,8 +310,8 @@ export default async function activate(orca) {
     orca.commands.register(id, async () => {
       pendingIntent = { kind: 'dialog', dialog: intent }
       post('ui.intent', pendingIntent)
-      await notify('Git Branches', 'Open Git Branches in the right sidebar to continue.')
-      return 'Continue in the Git Branches panel'
+      await notify('Git Controls', 'Open Git Controls in the right sidebar to continue.')
+      return 'Continue in the Git Controls panel'
     })
   }
 
@@ -319,7 +319,7 @@ export default async function activate(orca) {
   orca.commands.register('git.pull', () => paletteRun('Pull', 'pull'))
   orca.commands.register('git.fetch', () => paletteRun('Fetch', 'fetch', {}, (v) => v.output || 'Fetched all remotes'))
   orca.commands.register('git.push', () => paletteRun('Push', 'push'))
-  orca.commands.register('git.stash', () => paletteRun('Stash Changes', 'stash', { message: 'Stashed from Orca Git Branches' }))
+  orca.commands.register('git.stash', () => paletteRun('Stash Changes', 'stash', { message: 'Stashed from Orca Git Controls' }))
   orca.commands.register('git.unstash', () => paletteRun('Unstash Changes', 'unstash', { pop: true }))
   for (const [id, dialog] of [
     ['git.branches', 'branches'],
@@ -344,7 +344,7 @@ export default async function activate(orca) {
   ]) {
     intentCommand(id, dialog)
   }
-  log(`Git Branches worker started; workspace: ${repoPath() ?? 'none'} (${focused.reason})`)
+  log(`Git Controls worker started; workspace: ${repoPath() ?? 'none'} (${focused.reason})`)
 }
 
 export function deactivate() {}

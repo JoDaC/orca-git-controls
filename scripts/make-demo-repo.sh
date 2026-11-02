@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Creates a throwaway repository with branches, folders, two remotes, tags,
 # ahead/behind counts and a branch checked out in a second worktree.
-#   scripts/make-demo-repo.sh [dir]   (default: $TMPDIR/orca-git-branches-demo)
+#   scripts/make-demo-repo.sh [dir]   (default: $TMPDIR/orca-git-controls-demo)
 set -euo pipefail
-DIR="${1:-${TMPDIR:-/tmp}/orca-git-branches-demo}"
+DIR="${1:-${TMPDIR:-/tmp}/orca-git-controls-demo}"
 case "$DIR" in
   "${TMPDIR:-/tmp}"*|/tmp/*|/private/var/folders/*) ;;
   *) echo "Refusing to create a demo repo outside \$TMPDIR: $DIR" >&2; exit 1 ;;

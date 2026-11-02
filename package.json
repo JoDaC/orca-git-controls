@@ -1,9 +1,9 @@
 {
-  "name": "orca-git-branches",
+  "name": "orca-git-controls",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Android Studio style Git branches popup and Git menu for Orca",
+  "description": "Android Studio style Git controls for Orca",
   "license": "MIT",
   "scripts": {
     "test": "node --test test/*.test.mjs"

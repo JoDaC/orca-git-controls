@@ -120,4 +120,4 @@ http
       res.end(String(e.message))
     }
   })
-  .listen(port, () => console.log(`Git Branches dev preview for ${repo}: http://localhost:${port}/`))
+  .listen(port, () => console.log(`Git Controls dev preview for ${repo}: http://localhost:${port}/`))

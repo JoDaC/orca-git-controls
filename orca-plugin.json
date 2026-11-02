@@ -1,12 +1,45 @@
 {
   "$schema": "https://raw.githubusercontent.com/stablyai/orca/main/docs/schemas/plugins/orca-plugin.v2.schema.json",
   "manifestVersion": 2,
-  "id": "git-branches",
-  "name": "Git Branches",
+  "id": "git-controls",
+  "name": "Git Controls",
   "version": "0.1.0",
   "execution": "trusted-worker",
-  "description": "Android Studio style Git branches popup and Git menu: switch, create, merge, rebase, compare and delete branches in the focused workspace, with Smart Checkout and worktree-aware checkout.",
+  "description": "IDE-style Git controls for Orca: a branches panel and Git menu to switch, create, merge, rebase, compare and delete branches in the focused workspace, with Smart Checkout and worktree-aware checkout.",
   "license": "MIT",
+  "author": {
+    "name": "JoDaC",
+    "url": "https://github.com/JoDaC"
+  },
+  "repository": "https://github.com/JoDaC/orca-git-controls",
+  "homepage": "https://github.com/JoDaC/orca-git-controls",
+  "icon": "images/icon.png",
+  "cover": {
+    "path": "images/cover.png",
+    "alt": "The Git Controls branches panel in dark and light themes"
+  },
+  "screenshots": [
+    {
+      "path": "images/screenshot-panel.png",
+      "alt": "Branches panel listing recent, local and remote branches with incoming and outgoing counts, in dark and light themes",
+      "caption": "Recent, Local, Remote and Tags, grouped into folders"
+    },
+    {
+      "path": "images/screenshot-menu.png",
+      "alt": "Per-branch menu with checkout, rebase, merge, compare, rename and delete actions",
+      "caption": "Per-branch actions"
+    },
+    {
+      "path": "images/screenshot-smart.png",
+      "alt": "Dialog offering Smart Checkout or Force Checkout when local changes would be overwritten",
+      "caption": "Smart Checkout keeps your local changes"
+    },
+    {
+      "path": "images/screenshot-search.png",
+      "alt": "Search filtering branches and actions as you type",
+      "caption": "Search branches and actions"
+    }
+  ],
   "engines": {
     "orca": ">=1.4.246"
   },
@@ -16,7 +49,7 @@
     "panels": [
       {
         "id": "branches",
-        "title": "Git Branches",
+        "title": "Git Controls",
         "icon": "branch",
         "entry": "panel/index.html"
       }

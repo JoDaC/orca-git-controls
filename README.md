@@ -1,4 +1,6 @@
-# Orca Git Branches
+# Orca Git Controls
+
+![Git Controls branches panel in dark and light themes](images/cover.png)
 
 An Orca plugin that brings Android Studio's Git branches popup and Git menu into Orca.
 Orca's own Git UI is a commit panel (commit, push, pull, sync), and it assumes one branch per
@@ -14,7 +16,7 @@ The plugin always works on the checkout of the workspace focused in Orca.
 
 ## What it does
 
-### Branches panel ("Git Branches" in the right sidebar, branch icon)
+### Branches panel ("Git Controls" in the right sidebar, branch icon)
 
 - **Search** at the top filters branches and actions, Git menu items included. Arrow keys move
   the selection. Enter or → opens the selected row. Esc or ← goes back.
@@ -69,7 +71,7 @@ The plugin always works on the checkout of the workspace focused in Orca.
 
 Palette commands that need no input (Fetch, Pull, Push, Update Project, Stash, Unstash Latest) run
 at once and report the result in a desktop notification. Commands that need input open their
-dialog in the Git Branches panel.
+dialog in the Git Controls panel.
 
 ### Behavior
 
@@ -105,7 +107,7 @@ dialog in the Git Branches panel.
   1.4.246 release on GitHub), then restart it.
 - Git 2.23 or later on the machine. The worker looks for git in `/opt/homebrew/bin`,
   `/usr/local/bin` and `/usr/bin`, in that order. To use a different binary, set
-  `ORCA_GIT_BRANCHES_GIT`.
+  `ORCA_GIT_CONTROLS_GIT`.
 
 ## Install locally (development folder)
 
@@ -120,7 +122,7 @@ asks for these capabilities:
 ### From a terminal
 
 ```sh
-cd /Users/jossicruz/StudioProjects/orca-git-branches
+cd path/to/orca-git-controls
 orca plugin dev load .
 ```
 
@@ -134,9 +136,9 @@ orca plugin dev load . --approve <fingerprint>
 Useful afterwards:
 
 ```sh
-orca plugin open local.git-branches --panel branches   # show the panel
-orca plugin shot local.git-branches                     # PNG of the panel
-orca plugin logs local.git-branches                     # worker and panel logs
+orca plugin open local.git-controls --panel branches   # show the panel
+orca plugin shot local.git-controls                     # PNG of the panel
+orca plugin logs local.git-controls                     # worker and panel logs
 orca plugin dev watch .                                 # live reload while editing
 orca plugin dev unload .                                # remove it
 ```
@@ -144,9 +146,9 @@ orca plugin dev unload .                                # remove it
 ### From Settings
 
 1. **Settings → Plugins:** click **Turn on plugins** if plugins are off.
-2. **Development folders…:** add `/Users/jossicruz/StudioProjects/orca-git-branches`.
-3. Review the requested access and enable **Git Branches** (key `local.git-branches`).
-4. Open **Git Branches** from the branch icon in the right sidebar.
+2. **Development folders…:** add the folder you cloned this repository into.
+3. Review the requested access and enable **Git Controls** (key `local.git-controls`).
+4. Open **Git Controls** from the branch icon in the right sidebar.
 
 Settings for the plugin (update method rebase/merge, recent count, show tags, fetch on open) are
 under the plugin in Orca's Settings. The panel's gear opens the same settings.
@@ -154,8 +156,8 @@ under the plugin in Orca's Settings. The panel's gear opens the same settings.
 ## Try it on a throwaway repository
 
 ```sh
-scripts/make-demo-repo.sh          # builds $TMPDIR/orca-git-branches-demo/{work,work-hotfix,...}
-orca repo add --path "$TMPDIR/orca-git-branches-demo/work"
+scripts/make-demo-repo.sh          # builds $TMPDIR/orca-git-controls-demo/{work,work-hotfix,...}
+orca repo add --path "$TMPDIR/orca-git-controls-demo/work"
 ```
 
 The demo repository has:
@@ -171,7 +173,7 @@ Browser preview without Orca: this runs the real worker with a stand-in host and
 panel with a mock `window.orca`.
 
 ```sh
-node scripts/dev-server.mjs "$TMPDIR/orca-git-branches-demo/work"
+node scripts/dev-server.mjs "$TMPDIR/orca-git-controls-demo/work"
 open "http://localhost:4519/"            # or ?theme=dark
 ```
 
@@ -235,6 +237,9 @@ These come from what Orca's plugin API offers in 1.4.246 (host API 1.2).
   not supported.
 - **Desktop app only.** In Orca's browser client, frames must inline their scripts, and this panel
   loads them by relative URL.
+- **Tested on macOS.** Git and the Orca CLI are found on `PATH` on Linux and Windows, but those
+  platforms are untested. Set `ORCA_GIT_CONTROLS_GIT` or `ORCA_GIT_CONTROLS_ORCA` to point at
+  either binary.
 
 ## License
 

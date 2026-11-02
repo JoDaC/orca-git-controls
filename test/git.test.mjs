@@ -8,7 +8,7 @@ import * as g from '../lib/git.mjs'
 // Every repo lives under one throwaway directory in $TMPDIR.
 let root
 before(() => {
-  root = realpathSync(mkdtempSync(path.join(tmpdir(), 'orca-git-branches-test-')))
+  root = realpathSync(mkdtempSync(path.join(tmpdir(), 'orca-git-controls-test-')))
 })
 after(() => {
   if (root && root.startsWith(realpathSync(tmpdir()))) rmSync(root, { recursive: true, force: true })

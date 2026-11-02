@@ -1,4 +1,4 @@
-// Orca Git Branches: panel.
+// Orca Git Controls: panel.
 // Draws the Android Studio style branches popup and Git menu; all git work runs in the worker.
 
 import { icon } from './icons.js'
@@ -17,11 +17,11 @@ async function request(op, args = {}, timeoutMs = 120_000) {
   } else if (orca?.host?.has?.('plugin.request')) {
     res = (await orca.host.call('plugin.request', { name: 'git', input, timeoutMs })).output
   } else {
-    throw new Error('This Orca cannot reach the plugin worker. Git Branches needs Orca 1.4.246 or newer.')
+    throw new Error('This Orca cannot reach the plugin worker. Git Controls needs Orca 1.4.246 or newer.')
   }
   if (res && typeof res === 'object' && 'output' in res && !('ok' in res)) res = res.output
   if (!res || res.ok !== true) {
-    const err = new Error(res?.error || 'The Git Branches worker did not answer.')
+    const err = new Error(res?.error || 'The Git Controls worker did not answer.')
     err.command = res?.command
     throw err
   }
@@ -1385,7 +1385,7 @@ async function pickWorkspace() {
 async function openSettings() {
   const s = state.data?.settings || {}
   const r = await dialog({
-    title: 'Git Branches Settings',
+    title: 'Git Controls Settings',
     fields: [
       { id: 'updateMethod', label: 'Update Project / Pull method', type: 'select', value: s.updateMethod || 'rebase', options: [['rebase', 'Rebase'], ['merge', 'Merge']] },
       { id: 'recentCount', label: 'Recent branches shown', type: 'number', value: s.recentCount ?? 5 },
