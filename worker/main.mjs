@@ -10,6 +10,8 @@ import { buildSnapshot } from '../lib/snapshot.mjs'
 
 const DEFAULT_SETTINGS = { updateMethod: 'rebase', recentCount: 5, showTags: true, fetchOnOpen: false }
 
+const disposers = new Set()
+
 /** @param {import('orca/worker').OrcaWorkerApi} orca */
 export default async function activate(orca) {
   const log = (m) => {
@@ -25,6 +27,14 @@ export default async function activate(orca) {
   let watchedDir = null
   let lastFingerprint = null
   let changeTimer = null
+  let disposed = false
+
+  disposers.add(() => {
+    disposed = true
+    watcher?.close()
+    watcher = null
+    clearTimeout(changeTimer)
+  })
 
   const repoPath = () => override || focused.path
 
@@ -98,7 +108,7 @@ export default async function activate(orca) {
         dir = null
       }
     }
-    if (dir === watchedDir) return
+    if (dir === watchedDir || disposed) return
     watcher?.close()
     watcher = null
     watchedDir = dir
@@ -116,6 +126,7 @@ export default async function activate(orca) {
   }
 
   function scheduleChange() {
+    if (disposed) return
     clearTimeout(changeTimer)
     changeTimer = setTimeout(checkChange, 400)
   }
@@ -159,6 +170,9 @@ export default async function activate(orca) {
       const intent = pendingIntent
       pendingIntent = null
       if (!p) return { workspace, settings, intent, repo: null }
+      if (!(await g.isRepo(p))) {
+        return { workspace: { ...workspace, reason: 'not-a-repo', error: `Not a Git repository: ${p}` }, settings, intent, repo: null }
+      }
       const favorites = await getFavorites(p)
       const snap = await buildSnapshot(p, { recentCount: settings.recentCount, favorites })
       lastFingerprint = snap.fingerprint
@@ -265,7 +279,7 @@ export default async function activate(orca) {
     } catch (e) {
       // Git's own text, verbatim.
       log(`${op} failed: ${e.message}`)
-      return { ok: false, error: e.message, command: e.args ? `git ${e.args.join(' ')}` : undefined }
+      return { ok: false, error: e.message, command: e.args?.length ? `git ${e.args.join(' ')}` : undefined }
     }
   }
 
@@ -347,4 +361,8 @@ export default async function activate(orca) {
   log(`Git Controls worker started; workspace: ${repoPath() ?? 'none'} (${focused.reason})`)
 }
 
-export function deactivate() {}
+// The recursive .git watcher and the change timer would otherwise outlive the plugin.
+export function deactivate() {
+  for (const dispose of disposers) dispose()
+  disposers.clear()
+}

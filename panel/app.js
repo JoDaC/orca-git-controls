@@ -99,10 +99,11 @@ async function load({ refreshWorkspace = false } = {}) {
   const seq = ++loadSeq
   try {
     const data = await request(refreshWorkspace ? 'workspace.refresh' : 'snapshot', {}, 60_000)
+    // The worker hands out an intent once, so a newer load overtaking this one must not drop it.
+    if (data.intent) setTimeout(() => handleIntent(data.intent), 0)
     if (seq !== loadSeq) return
     state.data = data
     state.loadError = null
-    if (data.intent) setTimeout(() => handleIntent(data.intent), 0)
   } catch (e) {
     if (seq !== loadSeq) return
     state.loadError = e.message
