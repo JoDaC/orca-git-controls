@@ -6,6 +6,7 @@
   "description": "Git branches panel and Git menu for Orca",
   "license": "MIT",
   "scripts": {
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "test:e2e": "node --test test/e2e/panel.e2e.mjs"
   }
 }

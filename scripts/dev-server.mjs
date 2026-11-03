@@ -2,8 +2,12 @@
 // Runs the real worker (worker/main.mjs) with a stand-in `orca` object against one repository,
 // and serves panel/ with a mock `window.orca` that forwards plugin.request over HTTP.
 //
-//   node scripts/dev-server.mjs /path/to/repo [port]
+//   node scripts/dev-server.mjs /path/to/repo [port]     (port 0 picks a free one)
 //   open http://localhost:4519/?theme=dark
+//
+// For the end-to-end tests it also serves:
+//   POST /__command  {"id": "git.newBranch"}  runs a registered palette command, as Orca would
+//   GET  /__notifications                     notifications the worker has shown so far
 
 import http from 'node:http'
 import { readFile } from 'node:fs/promises'
@@ -15,6 +19,8 @@ const repo = path.resolve(process.argv[2] || process.cwd())
 const port = Number(process.argv[3] || 4519)
 
 const handlers = new Map()
+const commands = new Map()
+const notifications = []
 const listeners = new Set()
 const settings = {}
 const storage = {}
@@ -29,6 +35,7 @@ const fakeOrca = {
           return null
         case 'notifications.show':
           console.log('[notify]', params.title, params.body ?? '')
+          notifications.push(params)
           return { delivered: true }
         case 'settings.get':
           return { settings }
@@ -52,7 +59,12 @@ const fakeOrca = {
     }
   },
   events: { on: () => ({ dispose() {} }) },
-  commands: { register: () => ({ dispose() {} }) }
+  commands: {
+    register: (id, fn) => {
+      commands.set(id, fn)
+      return { dispose: () => commands.delete(id) }
+    }
+  }
 }
 
 const { default: activate } = await import(path.join(root, 'worker/main.mjs'))
@@ -73,7 +85,7 @@ window.orca = Object.freeze({
   api: { major: 1, minor: 2 },
   host: { has: () => false, call: async () => { throw new Error('dev') } },
   on: () => ({ dispose() {} }),
-  files: { saveAs: async ({ suggestedName, data }) => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data])); a.download = suggestedName; a.click(); return { status: 'saved' } } },
+  files: { saveAs: async ({ suggestedName, data }) => { (window.__savedFiles ||= []).push({ suggestedName, data }); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data])); a.download = suggestedName; a.click(); return { status: 'saved' } } },
   plugin: {
     async request(name, input) {
       const r = await fetch('/__req', { method: 'POST', body: JSON.stringify({ name, input }) })
@@ -86,7 +98,7 @@ window.orca = Object.freeze({
 
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' }
 
-http
+const server = http
   .createServer(async (req, res) => {
     try {
       const url = new URL(req.url, 'http://x')
@@ -104,6 +116,20 @@ http
         res.writeHead(200, { 'content-type': 'application/json' })
         return res.end(JSON.stringify(out))
       }
+      if (url.pathname === '/__command' && req.method === 'POST') {
+        let body = ''
+        for await (const chunk of req) body += chunk
+        const { id } = JSON.parse(body)
+        const fn = commands.get(id)
+        if (!fn) throw new Error(`no command ${id}`)
+        const out = await fn()
+        res.writeHead(200, { 'content-type': 'application/json' })
+        return res.end(JSON.stringify({ result: out ?? null }))
+      }
+      if (url.pathname === '/__notifications') {
+        res.writeHead(200, { 'content-type': 'application/json' })
+        return res.end(JSON.stringify(notifications))
+      }
       if (url.pathname === '/__mock.js') {
         res.writeHead(200, { 'content-type': 'text/javascript' })
         return res.end(MOCK)
@@ -120,4 +146,4 @@ http
       res.end(String(e.message))
     }
   })
-  .listen(port, () => console.log(`Git Controls dev preview for ${repo}: http://localhost:${port}/`))
+  .listen(port, () => console.log(`Git Controls dev preview for ${repo}: http://localhost:${server.address().port}/`))

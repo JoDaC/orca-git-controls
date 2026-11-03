@@ -25,11 +25,13 @@ orca plugin dev unload .                                # remove it
 ## Tests
 
 ```sh
-npm test
+npm test            # git layer, snapshot, Orca CLI wrapper and worker (about 1 min)
+npm run test:e2e    # the panel in headless Chrome against the demo repository (about 2 min)
 ```
 
 The tests run git against throwaway repositories under `$TMPDIR`. They never touch your own
-repositories.
+repositories or call the real Orca app. The end-to-end tests skip when Chrome is not found; set
+`CHROME_PATH` to point at it, and `E2E_CONCURRENCY` to change how many run at once (default 4).
 
 ## Throwaway repository and browser preview
 
