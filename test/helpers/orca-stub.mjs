@@ -11,8 +11,9 @@ const dir = path.dirname(process.argv[1])
 const args = process.argv.slice(2)
 fs.appendFileSync(path.join(dir, 'calls.jsonl'), JSON.stringify(args) + '\\n')
 const responses = JSON.parse(fs.readFileSync(path.join(dir, 'responses.json'), 'utf8'))
-const key = args.filter((a) => !a.startsWith('--')).slice(0, 2).join(' ')
-const r = responses[key] ?? { stdout: { ok: true, result: {} } }
+const positional = args.filter((a) => !a.startsWith('--'))
+const key = positional.slice(0, 2).join(' ')
+const r = responses[positional.join(' ')] ?? responses[key] ?? { stdout: { ok: true, result: {} } }
 if (r.stdout !== undefined) process.stdout.write(typeof r.stdout === 'string' ? r.stdout : JSON.stringify(r.stdout))
 if (r.stderr) process.stderr.write(r.stderr)
 process.exit(r.exit ?? 0)
@@ -20,7 +21,8 @@ process.exit(r.exit ?? 0)
 
 /**
  * Writes the stub and points ORCA_GIT_CONTROLS_ORCA at it.
- * Responses are keyed by the first two positional args ("worktree list", "terminal switch").
+ * Responses are keyed by the first two positional args ("worktree list", "terminal switch"); a
+ * key with every positional arg ("worktree list wsl" for `--environment wsl`) wins over that.
  */
 export function installOrcaStub() {
   const dir = fresh('orca-stub')

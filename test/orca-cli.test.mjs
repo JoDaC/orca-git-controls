@@ -85,3 +85,99 @@ test('errors carry the JSON error message, else stderr, else stdout, else the ex
   process.env.ORCA_GIT_CONTROLS_ORCA = '/nonexistent/orca'
   await rejectsWith(cli.orcaCli(['worktree', 'list']), /ENOENT/)
 })
+
+// ---- Windows + WSL ------------------------------------------------------------------
+// On Windows, WSL workspaces live in a separate Orca runtime that a plain list call omits.
+
+const omitted = {
+  hostIds: [],
+  omittedHostIds: ['local', 'runtime:1', 'ssh:2'],
+  omittedHostSelectors: [
+    { hostId: 'local', selector: null },
+    { hostId: 'runtime:1', selector: '--environment wsl' },
+    { hostId: 'ssh:2', selector: null }
+  ]
+}
+const win = (distro = 'Ubuntu-26.04', seen = []) => ({
+  platform: 'win32',
+  resolveDistro: async (selector, paths) => {
+    seen.push([selector, paths])
+    return distro
+  }
+})
+
+test('selectorArgs splits a host selector into CLI flags', () => {
+  assert.deepEqual(cli.selectorArgs('--environment wsl'), ['--environment', 'wsl'])
+  assert.deepEqual(cli.selectorArgs('--host ssh:abc'), ['--host', 'ssh:abc'])
+  assert.equal(cli.selectorArgs(null), null)
+  assert.equal(cli.selectorArgs('wsl'), null)
+})
+
+test('on Windows, listWorktrees adds the omitted WSL environment with \\\\wsl.localhost paths', async () => {
+  stub.ok('worktree list', { worktrees: [{ path: 'C:\\repo', displayName: 'win' }], hostScope: omitted })
+  stub.ok('worktree list wsl', { worktrees: [{ path: '/home/me/card', displayName: 'card' }, { path: 'odd', displayName: 'skip' }] })
+  const seen = []
+  const list = await cli.listWorktrees(win('Ubuntu-26.04', seen))
+  assert.deepEqual(list, [
+    { path: 'C:\\repo', displayName: 'win' },
+    { path: '\\\\wsl.localhost\\Ubuntu-26.04\\home\\me\\card', displayName: 'card', orcaSelector: '--environment wsl', orcaPath: '/home/me/card' }
+  ])
+  assert.deepEqual(seen, [['--environment wsl', ['/home/me/card']]])
+  // Hosts with no selector are not asked; the environment is asked once.
+  assert.deepEqual(stub.calls(), [
+    ['worktree', 'list', '--json'],
+    ['worktree', 'list', '--environment', 'wsl', '--json']
+  ])
+})
+
+test('on Windows, an environment that is not a local WSL distro, or is down, is left out', async () => {
+  stub.ok('worktree list', { worktrees: [{ path: 'C:\\repo' }], hostScope: omitted })
+  stub.ok('worktree list wsl', { worktrees: [{ path: '/srv/remote' }] })
+  assert.deepEqual(await cli.listWorktrees(win(null)), [{ path: 'C:\\repo' }])
+  stub.respond('worktree list wsl', { stderr: 'unreachable', exit: 1 })
+  assert.deepEqual(await cli.listWorktrees(win()), [{ path: 'C:\\repo' }])
+})
+
+test('off Windows, omitted hosts are not listed, so macOS and Linux behave as before', async () => {
+  stub.ok('worktree list', { worktrees: [{ path: '/repo' }], hostScope: omitted })
+  assert.deepEqual(await cli.listWorktrees({ platform: 'darwin', resolveDistro: () => assert.fail('no probe') }), [{ path: '/repo' }])
+  assert.deepEqual(await cli.listWorktrees({ platform: 'linux' }), [{ path: '/repo' }])
+  assert.deepEqual(stub.calls(), [
+    ['worktree', 'list', '--json'],
+    ['worktree', 'list', '--json']
+  ])
+})
+
+test('on Windows, listTerminals maps WSL terminal paths the same way', async () => {
+  stub.ok('terminal list', { terminals: [], hostScope: omitted })
+  stub.ok('terminal list wsl', { terminals: [{ handle: 't1', worktreePath: '/home/me/card' }] })
+  assert.deepEqual(await cli.listTerminals(win()), [
+    { handle: 't1', worktreePath: '\\\\wsl.localhost\\Ubuntu-26.04\\home\\me\\card', orcaSelector: '--environment wsl', orcaPath: '/home/me/card' }
+  ])
+})
+
+test('WSL paths go back to the Orca CLI as Linux paths with their --environment', async () => {
+  stub.ok('worktree list', { worktrees: [], hostScope: omitted })
+  stub.ok('worktree list wsl', { worktrees: [{ path: '/home/me/listed' }] })
+  await cli.listWorktrees(win('Ubuntu'))
+  assert.deepEqual(cli.orcaLocation('\\\\wsl.localhost\\Ubuntu\\home\\me\\listed'), { orcaPath: '/home/me/listed', extra: ['--environment', 'wsl'] })
+  // Not listed yet: still a WSL path, so Orca's "wsl" environment.
+  assert.deepEqual(cli.orcaLocation('\\\\wsl.localhost\\Other\\home\\me\\x'), { orcaPath: '/home/me/x', extra: ['--environment', 'wsl'] })
+  assert.deepEqual(cli.orcaLocation('/repo'), { orcaPath: '/repo', extra: [] })
+
+  stub.reset()
+  stub.ok('worktree create', { worktree: {} })
+  await cli.createWorktree({ repoPath: '\\\\wsl.localhost\\Ubuntu\\home\\me\\listed', name: 'x', baseBranch: 'main' })
+  stub.respond('terminal list', { stderr: 'down', exit: 1 })
+  await cli.openWorktree('\\\\wsl.localhost\\Ubuntu\\home\\me\\listed-x')
+  const calls = stub.calls()
+  assert.deepEqual(calls[0], ['worktree', 'create', '--repo', 'path:/home/me/listed', '--name', 'x', '--activate', '--base-branch', 'main', '--environment', 'wsl', '--json'])
+  assert.deepEqual(calls.at(-1), ['terminal', 'create', '--worktree', 'path:/home/me/listed-x', '--focus', '--environment', 'wsl', '--json'])
+})
+
+test('openWorktree switches to a WSL terminal through its environment', async () => {
+  stub.ok('terminal list', { terminals: [], hostScope: omitted })
+  stub.ok('terminal list wsl', { terminals: [{ handle: 'live', worktreePath: '/home/me/card' }] })
+  assert.deepEqual(await cli.openWorktree('\\\\wsl.localhost\\Ubuntu-26.04\\home\\me\\card', win()), { opened: true, via: 'terminal' })
+  assert.deepEqual(stub.calls().at(-1), ['terminal', 'switch', '--terminal', 'live', '--environment', 'wsl', '--json'])
+})

@@ -50,9 +50,11 @@ network calls of its own; only git's own fetch, pull and push reach your remotes
 
 ## Limitations
 
-- Local workspaces only; SSH and remote Orca hosts are not supported.
+- Local workspaces only; SSH and remote Orca hosts are not supported. On Windows, workspaces in
+  Orca's WSL environment are supported: git runs inside the WSL distro through `wsl.exe`.
 - Desktop app only; it does not run in Orca's browser client.
-- Tested on macOS. Linux and Windows should work but are untested.
+- Tested on macOS, and on Windows 11 with WSL workspaces. Linux and plain Windows workspaces
+  should work but are untested.
 - The panel lives in the right sidebar. Plugins cannot add popups, menu bar entries or a
   shortcut that opens a panel.
 - "Current File" commands ask which file, because plugins cannot see the active editor tab.

@@ -133,7 +133,7 @@ function renderHeader() {
   const r = repo()
   const btn = $('workspace')
   btn.replaceChildren()
-  const name = ws?.path ? ws.path.split('/').filter(Boolean).pop() : 'No workspace'
+  const name = ws?.path ? ws.path.split(/[\\/]/).filter(Boolean).pop() : 'No workspace'
   btn.append(
     el('span', { class: 'kind' }, icon(r?.detached ? 'commit' : 'branch', 14)),
     el('span', { class: 'ws-name' }, name),
