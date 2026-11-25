@@ -56,12 +56,15 @@ preview runs the real worker with a stand-in host and gives the panel a mock `wi
 | `lib/snapshot.mjs` | The JSON the panel draws |
 | `lib/workspace.mjs` | Finds the focused workspace's path |
 | `lib/orca-cli.mjs` | Orca CLI calls: list worktrees and terminals, open or create a worktree |
+| `lib/wsl.mjs` | Windows + WSL: `\\wsl.localhost` paths, finding the distro, running git through `wsl.exe` |
 | `panel/` | The panel: plain HTML, CSS and ES modules, no build step |
 | `scripts/` | Demo repository and browser preview |
 | `test/` | `node:test` suites |
 
 Git is looked up in `/opt/homebrew/bin`, `/usr/local/bin` and `/usr/bin`, then on `PATH`. Set
 `ORCA_GIT_CONTROLS_GIT` or `ORCA_GIT_CONTROLS_ORCA` to use other git or Orca binaries.
+On Windows, `ORCA_GIT_CONTROLS_WSL` replaces `wsl.exe` and `ORCA_GIT_CONTROLS_WSL_DISTRO` pins
+the distro that Orca's WSL environment runs in.
 
 ## Why some things work the way they do
 
@@ -85,5 +88,16 @@ These come from Orca's plugin API in 1.4.246 (host API 1.2).
   the unstash stops, the stash is kept, and the panel names the file.
 - **Requests time out after 120 s.** A slower fetch or push keeps running in git; the panel
   refreshes when it finishes.
+- **WSL workspaces on Windows are reached through `wsl.exe`.** Orca keeps them in a separate
+  runtime (`--environment wsl`) that a plain `orca worktree list` leaves out, naming it in
+  `hostScope.omittedHostSelectors`, and reports Linux paths. On Windows the worker lists that
+  environment too, finds the distro running it (the running distro with an `orca serve`
+  process, then the one where the reported paths exist), and carries the paths as
+  `\\wsl.localhost\<distro>\...` so node's fs can read them. Git for those paths runs inside the
+  distro with `wsl.exe -d <distro> --cd <path> --exec env ... git ...`; paths git prints are
+  mapped back. Paths go back to the Orca CLI in Linux form with `--environment`. Windows cannot
+  watch a `\\wsl.localhost` folder, so outside changes there are found by the panel's
+  fingerprint poll. Orca also starts workers without `APPDATA`, which the Orca CLI needs on
+  Windows, so the worker fills in the per-user variables when they are missing.
 - **Desktop only.** Orca's browser client needs inline frame scripts, and this panel loads its
   modules by relative URL.

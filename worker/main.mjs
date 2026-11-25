@@ -7,6 +7,7 @@ import * as g from '../lib/git.mjs'
 import * as cli from '../lib/orca-cli.mjs'
 import { matchWorkspace } from '../lib/workspace.mjs'
 import { buildSnapshot } from '../lib/snapshot.mjs'
+import { parseWslPath } from '../lib/wsl.mjs'
 
 const DEFAULT_SETTINGS = { updateMethod: 'rebase', recentCount: 5, showTags: true, fetchOnOpen: false }
 
@@ -28,6 +29,7 @@ export default async function activate(orca) {
   let lastFingerprint = null
   let changeTimer = null
   let disposed = false
+  let initialResolve = null // the first resolveFocused()
 
   disposers.add(() => {
     disposed = true
@@ -113,7 +115,9 @@ export default async function activate(orca) {
     watcher = null
     watchedDir = dir
     lastFingerprint = null
-    if (!dir) return
+    // Windows cannot watch a \\wsl.localhost folder (EISDIR); the panel's fingerprint poll
+    // still picks up changes made outside it.
+    if (!dir || parseWslPath(dir)) return
     try {
       watcher = watch(dir, { recursive: true }, (_type, file) => {
         if (file && /(^|\/)(objects|lfs)\//.test(file)) return
@@ -267,6 +271,7 @@ export default async function activate(orca) {
   const MUTATING = new Set(['checkout', 'checkoutRemote', 'createBranch', 'renameBranch', 'deleteBranch', 'deleteRemoteBranch', 'merge', 'rebase', 'checkoutAndRebase', 'abort', 'continue', 'fetch', 'updateProject', 'pull', 'updateBranch', 'push', 'commit', 'createTag', 'deleteTag', 'reset', 'stash', 'unstash', 'dropStash', 'rollback', 'applyPatch', 'newWorktree'])
 
   async function runOp(op, args = {}) {
+    await initialResolve
     const fn = ops[op]
     if (!fn) return { ok: false, error: `Unknown operation: ${op}` }
     if (!['snapshot', 'workspace.refresh', 'workspace.select', 'workspace.open', 'settings.set'].includes(op) && !repoPath()) {
@@ -297,7 +302,11 @@ export default async function activate(orca) {
     if (repoPath() !== before) post('workspace.changed', { path: repoPath() })
   })
 
-  await resolveFocused()
+  // Orca waits about 10 s for a worker to become ready, and finding the workspace can take a few
+  // seconds (WSL workspaces on Windows need wsl.exe), so do not hold start-up on it for long.
+  // Operations wait for it.
+  initialResolve = resolveFocused()
+  await Promise.race([initialResolve, new Promise((r) => setTimeout(r, 5000).unref?.())])
 
   // ---- command palette --------------------------------------------------------
 
